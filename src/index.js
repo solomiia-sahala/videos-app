@@ -1,17 +1,63 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import * as serviceWorker from './serviceWorker';
+import youtube from './apis/youtube';
+import SearchBar from './components/SearchBar';
+import VideoList from './components/VideoList';
+import VideoDetail from './components/VideoDetail';
+
+
+class App extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            videos: [],
+            selectedVideo: null
+        };
+    }
+
+    componentDidMount() {
+        this.onTermSubmit('cats');
+    }
+
+    onTermSubmit = async (term) => {
+        const response = await youtube.get('/search', {
+            params: {
+                q: term,
+            }
+        })
+        this.setState({
+            videos: response.data.items,
+            selectedVideo: response.data.items[0]
+        });
+    }
+
+    onVideoSelect = (video) => {
+        this.setState({ selectedVideo: video });
+    }
+
+    render() {
+        return (
+            <div className='ui container'>
+                <SearchBar onFormSubmit={this.onTermSubmit} />
+                <div className="ui grid">
+                    <div className="ui row">
+                        <div className="eleven wide column">
+                            <VideoDetail video={this.state.selectedVideo} />
+                        </div>
+                        <div className="five wide column">
+                            <VideoList videos={this.state.videos} onVideoSelect={this.onVideoSelect} />
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        )
+    }
+}
+
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root')
-);
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();
+    <App />,
+    document.getElementById('root')
+)
